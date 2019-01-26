@@ -45,3 +45,4 @@ I realize this setup is not the most straighforward because of Ruby on Rails. Pl
 
 ## Live Demo On Rinkeby 
 Contract address: 0x5E0b7dCad1979cb3747c6D454d2F869F8645B0eC
+Server deployed on: https://gentle-scrubland-56547.herokuapp.com/
