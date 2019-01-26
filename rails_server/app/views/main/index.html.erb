@@ -1,0 +1,297 @@
+<script>
+    var initialized = false;
+    toastr.options = {
+        "closeButton": false,
+        "debug": false,
+        "newestOnTop": true,
+        "progressBar": false,
+        "positionClass": "toast-bottom-right",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+    App = {
+        web3Provider: null,
+        contracts: {},
+        ipfs:null,
+        buffer:null,
+        numberOfBribes:0,
+        bribes:null,
+        // Modern dapp browsers...
+        init:async function() {
+            if (window.ethereum) {
+              App.web3Provider = window.ethereum;
+              try {
+                // Request account access
+                await window.ethereum.enable();
+              } catch (error) {
+                // User denied account access...
+                console.error("User denied account access")
+              }
+            }
+            // Legacy dapp browsers...
+            else if (false && window.web3) {
+              App.web3Provider = window.web3.currentProvider;
+            }
+            // If no injected web3 instance is detected, fall back to Ganache
+            else {
+              App.web3Provider = new Web3.providers.HttpProvider('http://localhost:8545');
+              //App.web3Provider = new Web3.providers.HttpProvider('https://rinkeby.infura.io/v3/1df6c65522734f6d89a8d838d01db515');
+              //console.log('connected to infura');
+            }
+            web3 = new Web3(App.web3Provider);
+
+            ipfs = new window.IpfsApi('ipfs.infura.io', '5001', { protocol: 'https' });
+    	    ipfs.id(function(err, res) {
+ 			    if (err) throw err
+ 				//console.log("Connected to IPFS node!", res.id, res.agentVersion, res.protocolVersion);
+ 		    });
+            buffer = window.IpfsApi().Buffer;
+            return App.initContract();
+        },
+        initContract: function() {
+            $.getJSON('Bribes.json', function(data) {
+                //console.log(data);
+                var AdoptionArtifact = data;
+                App.contracts.Bribes = TruffleContract(AdoptionArtifact);
+                App.contracts.Bribes.setProvider(App.web3Provider);
+                //console.log(App.contracts.Bribes);
+                //return App.markAdopted();
+            });
+            App.displayBribeTotal();
+            App.displayInitialListOfBribes();
+
+            <% if @bribe != nil %>
+                App.storeBribeOnIpfs("<%= @bribe %>");
+            <% end %>
+            return true;
+        },
+        storeBribeOnIpfs: function(input) {
+            mybuffer = buffer.from(input);
+            toastr.info("Saving to IPFS ...");
+            ipfs.files.add(mybuffer, function(err, result) {
+            	if (err) {
+					console.log("Error");
+                    toastr.error("Unable to save bribe on IPFS");
+				}
+            	else {
+                	ipfsHash = result[0].hash;
+                    //console.log("ipfs hash - " + ipfsHash);
+                    ipfs.pin.add(ipfsHash, function (err) {
+                    	if (err){
+							console.log("cannot pin");
+                        }
+                    	else{
+                        	console.log("pin ok");
+                        }
+                    });
+                    App.storeBribeInContract(ipfsHash);
+                }
+            });
+        },
+        storeBribeInContract: function() {
+            var adoptionInstance;
+            toastr.info("Please confirm the transaction ... ");
+            web3.eth.getAccounts(function(error, accounts) {
+              if(error) {
+                console.log(error);
+                toastr.error("Unable to save bribe on the blockchain");
+                return;
+              }
+              //console.log(App.contracts.Bounty);
+              App.contracts.Bribes.deployed().then(function(instance) {
+                //alert('found instance');
+                adoptionInstance = instance;
+                //return adoptionInstance.adopt(petId, {from:account});
+              }).then(function(result) {
+                //return App.markAdopted();
+                //console.log(result);
+                //return adoptionInstance.addBounty({from:accounts[0], gas:3000000, value:100});
+                //console.log(ipfsHash);
+                var stringArray = "<%= @bribe %>".split(/(\s+)/);
+                var amount = stringArray[2];
+                adoptionInstance.reportBribe(ipfsHash, amount, {gas: 1000000, gasPrice: web3.toWei(2, 'gwei'), value:0});
+                //myContractInstance.depositFunds({from: web3.eth.accounts[0], gas: 3000000, value: 100}, function(err, res){});
+
+                adoptionInstance.LogBribeReported().watch( function(error, result) {
+                    if(error)
+                    {
+                        console.log(error);
+                        toastr.error("Unable to save bribe on the blockchain");
+                    } else {
+                        //console.log(result.args.ipfsHash);
+                        //console.log(result.args.bribeIndex.c[0]);
+                        //console.log(result);
+                        toastr.success("Successfully posted to Ethereum blockchain");
+
+                        // Now update table with newly recorded bribe
+                        try {
+                            //var jsonObject = JSON.parse.stringify("<%= @bribe %>".replace(/&quot;/g,'"'));
+                            var stringArray = "<%= @bribe %>".split(/(\s+)/);
+                            var date = stringArray[0];
+                            var amount = stringArray[2];
+                            stringArray.splice(0, 4);
+                            var description = decodeURIComponent(stringArray.join(" "));
+
+                            //var myHtmlContent = jsonObject
+                            var tableRef = document.getElementById('bribes_list').getElementsByTagName('tbody')[0];
+                            var newRow = tableRef.insertRow(0);
+                            newRow.innerHTML = "<td>" + date + "</td>" + "<td>" + amount + "</td>" + "<td>" + description + "</td>" + "<td>" + "<a href='https://gateway.ipfs.io/ipfs/" + ipfsHash + "' target='_blank'>" + ipfsHash + "</a>" + "</td>";;
+
+                            // Update bribe total with newly recorded bribe's amount
+                            App.displayBribeTotal();
+                        } catch(e) {
+                            console.log(ipfsHash + ": " + e);
+                        }
+                    }
+                });
+              }).catch(function(err) {
+                console.log(err.message);
+              });
+            });
+        },
+        displayInitialListOfBribes: function() {
+            var adoptionInstance;
+            web3.eth.getAccounts(function(error, accounts) {
+              if(error) {
+                console.log(error);
+              }
+              var account = accounts[0];
+              App.contracts.Bribes.deployed().then(function(instance) {
+                //alert('found instance');
+                adoptionInstance = instance;
+                return adoptionInstance.numberOfBribes();
+              }).then(function(result) {
+                //return App.markAdopted();
+                App.numberOfBribes = result.c[0];
+                if(App.numberOfBribes > 0) {
+                    App.cacheBribeHashRecursive(0);
+                }
+              }).catch(function(err) {
+                console.log(err.message);
+              });
+            });
+        },
+        displayBribeTotal: function() {
+            var adoptionInstance;
+            web3.eth.getAccounts(function(error, accounts) {
+              if(error) {
+                console.log(error);
+              }
+              var account = accounts[0];
+              App.contracts.Bribes.deployed().then(function(instance) {
+                //alert('found instance');
+                adoptionInstance = instance;
+                return adoptionInstance.bribesTotalPaid();
+              }).then(function(result) {
+                //return App.markAdopted();
+                var total = result.c[0];
+                var h4Ref = document.getElementById('bribeTotal');
+                h4Ref.innerHTML = "Total paid in bribes: INR ₹" + total + " (USD $" + Math.round(total/70.3, 1) + ")"
+              }).catch(function(err) {
+                console.log(err.message);
+              });
+            });
+        },
+        cacheBribeHashRecursive: function(index) {
+            var adoptionInstance;
+            web3.eth.getAccounts(function(error, accounts) {
+              if(error) {
+                console.log(error);
+              }
+              var account = accounts[0];
+              App.contracts.Bribes.deployed().then(function(instance) {
+                //alert('found instance');
+                adoptionInstance = instance;
+                return adoptionInstance.bribeDetails(index);
+              }).then(function(result) {
+                //return App.markAdopted();
+                if(App.bribes == null) {
+                    App.bribes = new Array();
+                }
+                App.bribes[App.bribes.length] = result;
+                if(App.bribes.length < App.numberOfBribes) {
+                    App.cacheBribeHashRecursive(App.bribes.length);
+                } else {
+                    if(App.numberOfBribes > 0) {
+                        App.displayBribes(App.numberOfBribes - 1);
+                    }
+                }
+                //App.numberOfBribes = result.c[0];
+                //App.cacheBribes();
+              }).catch(function(err) {
+                console.log(err.message);
+              });
+            });
+        },
+        displayBribes: function(index) {
+            var request = new XMLHttpRequest();
+            request.timeout = 3000;
+            console.log("displayBribes called");
+            console.log(App.bribes[index]);
+            request.open('GET', 'https://gateway.ipfs.io/ipfs/' + App.bribes[index], true);
+            request.send(null);
+
+            request.onreadystatechange = function() {
+                if (request.readyState === 4) {
+                    if (request.status === 200) {
+                        var type = request.getResponseHeader('Content-Type')
+                        console.log(request.responseText);
+                        try {
+                            //var jsonObject = JSON.parse(request.responseText.replace(/&quot;/g,'"'));
+                            //var myHtmlContent = jsonObject
+                            var tableRef = document.getElementById('bribes_list').getElementsByTagName('tbody')[0];
+                            var newRow   = tableRef.insertRow(tableRef.rows.length);
+
+                            var stringArray = request.responseText.split(/(\s+)/);
+                            var date = stringArray[0];
+                            var amount = stringArray[2];
+                            stringArray.splice(0, 4);
+                            var description = decodeURIComponent(stringArray.join(" "));
+
+                            newRow.innerHTML = "<td>" + date + "</td>" + "<td>" + amount + "</td>" + "<td>" + description + "</td>" + "<td>" + "<a href='https://gateway.ipfs.io/ipfs/" + App.bribes[index] + "' target='_blank'>" + App.bribes[index] + "</a>" + "</td>";
+                        } catch(e) {
+                            console.log(e);
+                        }
+                    }
+                    if(index > 0) {
+                        App.displayBribes(index  - 1);
+                    }
+                }
+
+            }
+        }
+    };
+
+    $(function() {
+        $(window).on('load', function() {
+            App.init();
+        });
+    });
+</script>
+    <br>
+    <h4 id ="bribeTotal">
+      Total paid in bribes: -
+    </h4>
+    <br>
+    <div>
+      <table class = "table table-striped" id = "bribes_list">
+        <thead>
+        <tr>
+        <th>Date</th>
+        <th>Amount</th>
+        <th>Description</th>
+        <th>ipfsHash</th>
+        </tr>
+        </thead>
+      <tbody>
+      </tbody>
+      </table>
+    </div>
