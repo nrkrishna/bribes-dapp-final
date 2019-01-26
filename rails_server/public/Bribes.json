@@ -5047,16 +5047,10 @@
       "links": {},
       "address": "0x5E0b7dCad1979cb3747c6D454d2F869F8645B0eC",
       "transactionHash": "0x9327d54b80d614f08a26e43c3842b48a89756a2e3e414f2ca31b2e4cbdffadf8"
-    },
-    "1548482522071": {
-      "events": {},
-      "links": {},
-      "address": "0xd12B3EcB8A06a7ffFd82e13c062712b48729272E",
-      "transactionHash": "0x03322dfbb17122eddf2510e155d270d6ce07aa43e57509d06cf0a9bac07f8c2d"
     }
   },
   "schemaVersion": "3.0.0",
-  "updatedAt": "2019-01-26T06:02:13.077Z",
+  "updatedAt": "2019-01-26T04:38:28.419Z",
   "devdoc": {
     "methods": {
       "bribeDetails(uint32)": {
