@@ -34,7 +34,7 @@ The contract and site is a simple proof-of-concept. Some noteworthy limitations:
 4. To deploy on rinkeby, please modify the truffle.js file and enter your HD wallet mnemonic.
 
 ### Server
-_You can of test locally by following the instructions below. Please note that I built my demo app using Ruby on Rails, which requires the following setup to be done. If this is onerous, you can test my app on the live server [here](https://gentle-scrubland-56547.herokuapp.com/) that works off a contract deployed to the Rinkeby test network. 
+_You can of test locally by following the instructions below. Please note that I built my demo app using Ruby on Rails, which requires the following setup to be done. If this is onerous, you can test my app on the live server [here](https://gentle-scrubland-56547.herokuapp.com/) that works off a contract deployed to the Rinkeby test network._
 
 *Server setup instructions*
 1. You'll need Ruby on Rails to execute the server on your machine. If you don't have Ruby on Rails installed, please follow the instructions on this [website](https://gorails.com/setup/osx/10.14-mojave).
