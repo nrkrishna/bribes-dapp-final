@@ -34,9 +34,10 @@ The contract and site is a simple proof-of-concept. Some noteworthy limitations:
 4. To deploy on rinkeby, please modify the truffle.js file and enter your HD wallet mnemonic.
 
 ### Server
-_You can of test locally by following the instructions below. Please note that I built my demo app using Ruby on Rails, which requires the following setup to be done. If this is onerous, you can test my app on the live server [here](https://gentle-scrubland-56547.herokuapp.com/) that works off a contract deployed to the Rinkeby test network._
+_You can of test locally by following the instructions below. Please note that I built my demo app using Ruby on Rails, which requires additional setup to be done as detailed below. If this is onerous, you can test my app on the live server [here](https://gentle-scrubland-56547.herokuapp.com/) that works off a contract deployed to the Rinkeby test network._
 
-*Server setup instructions*
+**Server setup instructions**
+
 1. You'll need Ruby on Rails to execute the server on your machine. If you don't have Ruby on Rails installed, please follow the instructions on this [website](https://gorails.com/setup/osx/10.14-mojave).
 2. The server is in the "rails_server" folder in this repo.
 3. Open a terminal and navigate to that folder. 
@@ -45,8 +46,10 @@ _You can of test locally by following the instructions below. Please note that I
 6. Start the server with the command "rails s".
 7. Navigate to the site in the browser by going to the url "http://127.0.0.1:3000". 
 
-I realize this setup is not the most straighforward because of Ruby on Rails. Please email me at nkrishna@gmail.com with any questions.
+I realize this setup is not the most straighforward because of Ruby on Rails. Please test on the live server deployed [here](https://gentle-scrubland-56547.herokuapp.com/). Please email me at nkrishna@gmail.com with any questions or setup issues.
 
 ## Live Demo On Rinkeby 
+
 Contract address: 0x5E0b7dCad1979cb3747c6D454d2F869F8645B0eC
+
 Server deployed on: https://gentle-scrubland-56547.herokuapp.com/
