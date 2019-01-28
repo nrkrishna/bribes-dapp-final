@@ -5,6 +5,7 @@ contract('Bribes', function(accounts) {
     const owner = accounts[0]
     const another_address = accounts[1]
 
+    // This test confirms that a bribe reported to the dapp correctly stores the IPFS hash of the reported bribe
     it("Bribe 1 is published correctly", async() => {
         const bribe = await Bribes.deployed()
 
@@ -17,6 +18,8 @@ contract('Bribes', function(accounts) {
         //assert.equal(eventEmitted, true, 'publishing an ipfs hash should emit a bribe reported event')
     })
 
+    // This test confirms that a second bribe reported to the dapp correctly stores the IPFS hash of the reported bribe
+    // and the bribe total as tracked by the dapp matches the expected value.
     it("Bribe 2 is published correctly", async() => {
         const bribe = await Bribes.deployed()
 
@@ -30,6 +33,7 @@ contract('Bribes', function(accounts) {
         assert.equal(totalPaid, 2001, 'total bribes paid not matching with expected value')
     })
 
+    // This test confirms that the contract can be paused by the owner of the contract
     it("Contract can be paused", async() => {
         const bribe = await Bribes.deployed()
 
@@ -38,6 +42,7 @@ contract('Bribes', function(accounts) {
         assert.equal(result, true, 'contract was not paused as expected')
     })
 
+    // This test confirms that the contract can be unpaused by the owner of the contract
     it("Contract can be unpaused", async() => {
         const bribe = await Bribes.deployed()
 
@@ -46,6 +51,8 @@ contract('Bribes', function(accounts) {
         assert.equal(result, false, 'contract was not unpaused as expected')
     })
 
+    // This test confirms that the contract ownership can be traferred and that the new owner
+    // has the ability to pause the contract if needed.
     it("Contract ownership can be transferred", async() => {
         const bribe = await Bribes.deployed()
 
