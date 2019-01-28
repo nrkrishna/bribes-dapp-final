@@ -1,0 +1,3 @@
+Test network: Rinkeby
+Contract address: 0x5E0b7dCad1979cb3747c6D454d2F869F8645B0eC
+Live server that you can use to test the app: https://gentle-scrubland-56547.herokuapp.com/
